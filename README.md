@@ -3,7 +3,7 @@
 ## Overview
 
 Rule-based automation engine built with **Spring Boot** and **Java 17**.
-The backend exposes a REST API consumed by the [React frontend (FE_SE_Project_Gruppo11)](https://github.com/GiovanniCasella99/FE_SE_Project_Gruppo11) and runs a background scheduler that periodically evaluates rules and executes their actions when the configured conditions are met.
+The backend exposes a REST API consumed by the [React frontend (FE_SE_Project_Gruppo11)](https://github.com/cesareauricchio/FE_SE_Project_Gropu11) and runs a background scheduler that periodically evaluates rules and executes their actions when the configured conditions are met.
 
 ---
 
