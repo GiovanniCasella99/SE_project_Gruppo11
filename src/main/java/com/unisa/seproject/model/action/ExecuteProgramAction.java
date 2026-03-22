@@ -27,7 +27,9 @@ public record ExecuteProgramAction(String programPath, List<String> args) implem
         }
         try {
             new ProcessBuilder(command)
-                    .inheritIO()
+                    .directory(new java.io.File(programPath).getParentFile())
+                    .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+                    .redirectError(ProcessBuilder.Redirect.DISCARD)
                     .start();
             log.info("[ExecuteProgramAction] Launched '{}'", programPath);
         } catch (IOException e) {

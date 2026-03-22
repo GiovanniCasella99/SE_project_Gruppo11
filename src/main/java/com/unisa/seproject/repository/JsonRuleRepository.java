@@ -1,7 +1,5 @@
 package com.unisa.seproject.repository;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unisa.seproject.event.RuleChangedEvent;
 import com.unisa.seproject.model.rule.Rule;
 import jakarta.annotation.PostConstruct;
@@ -11,8 +9,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Repository;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -73,7 +73,7 @@ public class JsonRuleRepository implements RuleRepository {
                 rules.addAll(loaded);
             }
             log.info("Loaded {} rule(s) from '{}'.", loaded.size(), storagePath);
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             log.error("Failed to load rules from '{}': {}", storagePath, e.getMessage());
         }
     }
@@ -95,7 +95,7 @@ public class JsonRuleRepository implements RuleRepository {
         try {
             objectMapper.writerWithDefaultPrettyPrinter()
                     .writeValue(storagePath.toFile(), snapshot);
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             log.error("Failed to persist rules to '{}': {}", storagePath, e.getMessage());
         }
     }
