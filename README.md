@@ -81,7 +81,8 @@ src/main/java/com/unisa/seproject/
 │       └── FiringStrategyFactory.java Maps FiringMode enum → FiringStrategy instance
 │
 ├── event/
-│   └── RuleChangedEvent.java          Spring ApplicationEvent published on any rule mutation
+│   ├── RuleChangedEvent.java          Spring ApplicationEvent published on any rule mutation
+│   └── RuleFiredEvent.java            Spring ApplicationEvent published after each rule firing (carries ruleId, ruleName, firedAt, message)
 │
 ├── repository/
 │   ├── RuleRepository.java            Interface: findAll / findById / save / deleteById / saveAll
