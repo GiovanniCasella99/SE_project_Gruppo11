@@ -2,8 +2,8 @@
 
 ## Overview
 
-Rule-based automation engine built with **Spring Boot 4** and **Java 17**.
-The backend exposes a REST API (consumed by a React frontend) and runs a background scheduler that periodically evaluates rules and executes their actions when the configured conditions are met.
+Rule-based automation engine built with **Spring Boot** and **Java 17**.
+The backend exposes a REST API consumed by the [React frontend (FE_SE_Project_Gruppo11)](https://github.com/GiovanniCasella99/FE_SE_Project_Gruppo11) and runs a background scheduler that periodically evaluates rules and executes their actions when the configured conditions are met.
 
 ---
 
@@ -96,7 +96,9 @@ src/main/java/com/unisa/seproject/
 │   └── RuleScheduler.java             @Scheduled wrapper around RuleEvaluationService
 │
 └── controller/
-    └── RuleController.java            REST controller – /api/rules
+    ├── RuleController.java            REST controller – /api/rules
+    ├── EventController.java           SSE endpoint – /api/events (pushes RuleFiredEvent to connected browsers)
+    └── FileBrowserController.java     REST controller – /api/fs/programs (scans Windows Store apps)
 ```
 
 ---
@@ -220,9 +222,10 @@ Abstracts all data access behind an interface. The current implementation (`Json
 
 ### Observer — Spring `ApplicationEventPublisher`
 
-`JsonRuleRepository` publishes a `RuleChangedEvent` after every mutation.
-It also listens to that event (`@EventListener`) and flushes the rule list to disk.
-This replaces the deprecated `java.util.Observable` / `Observer` from the old project.
+Two events flow through the application:
+
+- `RuleChangedEvent` — published by `JsonRuleRepository` after every mutation; the repository also listens to it and flushes the rule list to disk. Replaces the deprecated `java.util.Observable` / `Observer` from the old project.
+- `RuleFiredEvent` — published by `RuleEvaluationService` after each successful rule firing; consumed by `EventController` which pushes the payload to all connected SSE clients.
 
 ### Factory — `FiringStrategyFactory`
 
@@ -233,8 +236,9 @@ Jackson's `@JsonSubTypes` acts as a factory for polymorphic trigger/action deser
 
 ## REST API
 
-Base path: `/api/rules`
-`@CrossOrigin` is configured for `http://localhost:3000` (React dev server).
+`@CrossOrigin` is configured for `http://localhost:3000` and `http://localhost:5173` (Vite dev server).
+
+### Rules – `/api/rules`
 
 | Method | Path | Description | Body | Response |
 |---|---|---|---|---|
@@ -244,6 +248,26 @@ Base path: `/api/rules`
 | `PUT` | `/api/rules/{id}` | Replace a rule | `Rule` | `200 Rule` / `404` |
 | `DELETE` | `/api/rules/{id}` | Delete a rule | — | `204` / `404` |
 | `PATCH` | `/api/rules/{id}/toggle` | Toggle active/inactive | — | `200 Rule` / `404` |
+
+### Server-Sent Events – `/api/events`
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/events` | SSE stream; emits a `RuleFiredEvent` JSON payload every time a rule fires |
+
+**Payload shape:**
+```json
+{ "ruleId": "...", "ruleName": "Morning reminder", "firedAt": "2026-03-22T09:00:00", "message": "Good morning!" }
+```
+`message` is `null` for non-MESSAGE actions. The React frontend subscribes via `EventSource` and shows a popup for alarms.
+
+### Program browser – `/api/fs`
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/fs/programs` | Returns a sorted list of `{name, path}` entries for installed Microsoft Store apps |
+
+Scans `%USERPROFILE%\AppData\Local\Microsoft\WindowsApps` (depth 3, `.exe` files only). Used by the frontend's program picker.
 
 ### Example: create a rule
 
